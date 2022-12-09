@@ -1,0 +1,43 @@
+(function() {
+  const actualTime = new Date(Date.now() + 60*60000);
+
+  const heaterBlockedUntil = items.getItem("HeaterBlockedUntil").state != "NULL" ? new Date(items.getItem("HeaterBlockedUntil").state) : actualTime;
+
+  const heaterBlockDuration = items.getItem("HeaterBlockTime").state != "NULL" ? items.getItem("HeaterBlockTime").state : 15;
+
+  const heaterMaxTime = items.getItem("HeaterMaxTime").state != "NULL" ? items.getItem("HeaterMaxTime").state : 120;
+
+  const balconyPowerStationQuantity = items.getItem("BalconyPowerStationQuantity").state != "NULL" ? items.getItem("BalconyPowerStationQuantity").state : 300; 
+
+  if(heaterBlockedUntil.getTime() <= actualTime.getTime()) {
+
+    if(items.getItem("Shelly25_B_Betrieb").state == "ON") {
+      if(items.getItem("Shelly25_B_Betrieb").history.changedSince(new Date(actualTime.getTime() - (60 + heaterMaxTime)*60000))) {
+        items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
+        heaterIsOn = false;
+        items.getItem("HeaterBlockedUntil").postUpdate(actualTime.getTime() + (60 + heaterBlockDuration)*60000);
+        console.log("Heizung wird wegen Dauerbetrieb vorerst abgeschalten.");
+      }
+      if(items.getItem("Shelly25_A_Stromverbrauch").state < (balconyPowerStationQuantity.toString() + " W")) {
+        items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
+        heaterIsOn = false;
+        console.log("Balkonkraftwerk erzeugt nicht genug Energie, Heizung wird wegen Dauerbetrieb abgeschalten.");
+      }
+    } 
+    else {
+      if(items.getItem("Shelly25_A_Stromverbrauch").state > (balconyPowerStationQuantity.toString() + " W")) {
+        items.getItem("Shelly25_B_Betrieb").sendCommand("ON");
+        console.log("Balkonkraftwerk erzeugt viel Energie, Infrarotheizung wird eingeschalten.");
+      }  
+      if(items.getItem("Shelly25_A_Stromverbrauch").state < (balconyPowerStationQuantity.toString() + " W")) {
+        heaterIsOn = false;
+        console.log("Balkonkraftwerk erzeugt nicht genügend Energie.");
+      }
+    }
+
+
+  } else {
+    console.log("Heizung ist wegen Dauerbetrieb bis " + items.getItem("HeaterBlockedUntil").state + " abgeschaltet.");
+  }
+})();
+  
