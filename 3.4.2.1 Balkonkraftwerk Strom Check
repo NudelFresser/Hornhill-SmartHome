@@ -10,24 +10,63 @@
   const balconyPowerStationQuantity = items.getItem("BalconyPowerStationQuantity").state != "NULL" ? items.getItem("BalconyPowerStationQuantity").state : 300; 
 
   if(heaterBlockedUntil.getTime() <= actualTime.getTime()) {
-
+    //schon an
     if(items.getItem("Shelly25_B_Betrieb").state == "ON") {
+      //Dauerbetrieb
       if(items.getItem("Shelly25_B_Betrieb").history.changedSince(new Date(actualTime.getTime() - (60 + heaterMaxTime)*60000))) {
         items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
         heaterIsOn = false;
         items.getItem("HeaterBlockedUntil").postUpdate(actualTime.getTime() + (60 + heaterBlockDuration)*60000);
         console.log("Heizung wird wegen Dauerbetrieb vorerst abgeschalten.");
-      }
+      }//muss hier else/else if hin? => das nicht doppelt ausgeschalten wird?
+      //nicht genügend Stom
       if(items.getItem("Shelly25_A_Stromverbrauch").state < (balconyPowerStationQuantity.toString() + " W")) {
         items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
         heaterIsOn = false;
-        console.log("Balkonkraftwerk erzeugt nicht genug Energie, Heizung wird wegen Dauerbetrieb abgeschalten.");
+        console.log("Balkonkraftwerk erzeugt nicht genug Energie, Infrarotheizung wird eingeschalten.");
+      }else{
+        //optimiertes Heizen
+        var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
+        if (OptimiertesHeizenRuleToggle) {
+          var MaxSollTempHobbyraumv = items.getItem("MaxSollTempHobbyraum").state != "NULL" ? items.getItem("MaxSollTempHobbyraum").state : 21;
+          var MinSollLuftfeuchtHobbyraumv = items.getItem("MinSollLuftfeuchtHobbyraum").state != "NULL" ? items.getItem("MinLuftfeuchtTempHobbyraum").state : 70;
+          var contentHobbyraum ='{"deviceids":"032041B7B589","phoneid":"285142992122"}'
+          var returnvalueHobbyraum = actions.HTTP.sendHttpPostRequest("https://www.data199.com/api/pv1/device/lastmeasurement","application/json",contentHobbyraum, 10000);
+          var antwortHobbyraum = JSON.parse(returnvalueHobbyraum);
+          var tHobbyraumv = antwortHobbyraum.devices[0].measurement.t1;
+          var hHobbyraumv = antwortHobbyraum.devices[0].measurement.h;
+          if (tHobbyraumv > MaxSollTempHobbyraumv && hHobbyraumv < MinSollLuftfeuchtHobbyraumv) {
+            items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
+            heaterIsOn = false;
+            console.log("Optimiertes Heizen: Temperatur zu hoch und Luftfeuchtigkeit zu gering, Heizung wird wegen Dauerbetrieb abgeschalten.");
+          }
+        }
       }
     } 
+    //noch nicht an
     else {
+      //genügend Strom
       if(items.getItem("Shelly25_A_Stromverbrauch").state > (balconyPowerStationQuantity.toString() + " W")) {
-        items.getItem("Shelly25_B_Betrieb").sendCommand("ON");
-        console.log("Balkonkraftwerk erzeugt viel Energie, Infrarotheizung wird eingeschalten.");
+        //optimiertes Heizen
+        var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
+        if (OptimiertesHeizenRuleToggle) {
+          var MinSollTempHobbyraumv = items.getItem("MinSollTempHobbyraum").state != "NULL" ? items.getItem("MinSollTempHobbyraum").state : 19;
+          var MaxSollLuftfeuchtHobbyraumv = items.getItem("MaxSollLuftfeuchtHobbyraum").state != "NULL" ? items.getItem("MaxLuftfeuchtTempHobbyraum").state : 75;
+          var contentHobbyraum ='{"deviceids":"032041B7B589","phoneid":"285142992122"}'
+          var returnvalueHobbyraum = actions.HTTP.sendHttpPostRequest("https://www.data199.com/api/pv1/device/lastmeasurement","application/json",contentHobbyraum, 10000);
+          var antwortHobbyraum = JSON.parse(returnvalueHobbyraum);
+          var tHobbyraumv = antwortHobbyraum.devices[0].measurement.t1;
+          var hHobbyraumv = antwortHobbyraum.devices[0].measurement.h;
+          if (tHobbyraumv < MinSollTempHobbyraumv || hHobbyraumv > MaxSollLuftfeuchtHobbyraumv) {
+              items.getItem("Shelly25_B_Betrieb").sendCommand("ON");
+              console.log("Optimiertes Heizen: Balkonkraftwerk erzeugt viel Energie, Temperatur zu gering oder Luftfeuchtigkeit zu hoch, Infrarotheizung wird eingeschalten.");
+          }
+        }
+        else{
+          items.getItem("Shelly25_B_Betrieb").sendCommand("ON");
+          console.log("Balkonkraftwerk erzeugt viel Energie, Infrarotheizung wird eingeschalten.");
+        }
+              
       }  
       if(items.getItem("Shelly25_A_Stromverbrauch").state < (balconyPowerStationQuantity.toString() + " W")) {
         heaterIsOn = false;
