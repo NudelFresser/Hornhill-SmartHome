@@ -29,7 +29,7 @@
         var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
         if (OptimiertesHeizenRuleToggle) {
           var MaxSollTempHobbyraumv = items.getItem("MaxSollTempHobbyraum").state != "NULL" ? items.getItem("MaxSollTempHobbyraum").state : 21;
-          var MinSollLuftfeuchtHobbyraumv = items.getItem("MinSollLuftfeuchtHobbyraum").state != "NULL" ? items.getItem("MinLuftfeuchtTempHobbyraum").state : 70;
+          var MinSollLuftfeuchtHobbyraumv = items.getItem("MinSollLuftfeuchtHobbyraum").state != "NULL" ? items.getItem("MinSollLuftfeuchtHobbyraum").state : 70;
           var contentHobbyraum ='{"deviceids":"032041B7B589","phoneid":"285142992122"}'
           var returnvalueHobbyraum = actions.HTTP.sendHttpPostRequest("https://www.data199.com/api/pv1/device/lastmeasurement","application/json",contentHobbyraum, 10000);
           var antwortHobbyraum = JSON.parse(returnvalueHobbyraum);
@@ -51,7 +51,7 @@
         var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
         if (OptimiertesHeizenRuleToggle) {
           var MinSollTempHobbyraumv = items.getItem("MinSollTempHobbyraum").state != "NULL" ? items.getItem("MinSollTempHobbyraum").state : 19;
-          var MaxSollLuftfeuchtHobbyraumv = items.getItem("MaxSollLuftfeuchtHobbyraum").state != "NULL" ? items.getItem("MaxLuftfeuchtTempHobbyraum").state : 75;
+          var MaxSollLuftfeuchtHobbyraumv = items.getItem("MaxSollLuftfeuchtHobbyraum").state != "NULL" ? items.getItem("MaxSollLuftfeuchtHobbyraum").state : 75;
           var contentHobbyraum ='{"deviceids":"032041B7B589","phoneid":"285142992122"}'
           var returnvalueHobbyraum = actions.HTTP.sendHttpPostRequest("https://www.data199.com/api/pv1/device/lastmeasurement","application/json",contentHobbyraum, 10000);
           var antwortHobbyraum = JSON.parse(returnvalueHobbyraum);
