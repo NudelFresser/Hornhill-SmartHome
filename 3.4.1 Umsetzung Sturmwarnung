@@ -8,55 +8,84 @@
     var thread = Java.type('java.lang.Thread');
     var notifications = Java.type('org.openhab.io.openhabcloud.NotificationAction');
 
+	/*Die Daten des Windsensors werden mittels der REST API abgerufen. Die komplette Dokumentation der API ist hier zu finden:
+	https://mobile-alerts.eu/info/public_server_api_documentation.pdf
+	Die zu übergebenen Parameter sind die PhoneID des Dashboards und die DeviceID des entsprechenden Sensors. Die PhoneID ist am Ende der URL zu finden:
+	https://measurements.mobile-alerts.eu/Home/SensorsOverview?phoneid=285142992122 
+	und die DeviceID in der Übersichtsseite.
+	Diese beiden Werte werden im JSON-Format in der Variable "raw" abgespeichert.
+	*/
+
     var raw = JSON.stringify({
         "phoneid": "285142992122",
         "deviceids": "0B1D2300E734"
     });
 
-    var bedingung;
+	//Hier werden zunächst Variablen deklariert. sleep wird benötigt, damit später die Pushbenachrichtigung ausgelöst wird, 
+	//"readwindgust" erhält später die gemessene Böengeschwindigkeit des Windsensors, "readwindspeed" die Windgeschwindigkeit und "readwinddirection" erhält einen Wert zwischen 0 und 15, 
+	//welcher für die verschiedenen Windrichtungen steht.
+   
     var sleep = false;
     var readwindgust = "";
     var readwindspeed = "";
     var readwinddirection = "";
     var utcSeconds = "";
 
+	//Beim Aufruf einer API besteht die Auswahl zwischen den bekannten vier CRUD-Methoden - Create, Post, Update, Delete. 
+	//Mittels der POST-Methode wird an den Link der REST API "https://www.data199.com/api/pv1/device/lastmeasurement" die in der Variable "raw" gespeicherten Werte als JSON-Format gesendet.
+	//Sollte innerhalb von 10.000 Millisekunden keine Response erhalten werden, dann wird die Anfrage durch einen Timeout unterbrochen.
     var returnvalue = actions.HTTP.sendHttpPostRequest("https://www.data199.com/api/pv1/device/lastmeasurement", "application/json", raw, 10000);
 
+	//Die in der "returnvalue" stehenden Inhalte werden hier als JSON-Format abgespeichert.
     var antwort = JSON.parse(returnvalue);
 
+	//Die zuvor deklarierten Variablen "readwindgust", "readwindspeed" und "readwinddirection" werden hier initialisiert.
+	//Da in dem erhaltenen JSON-Format ein Array (devices) enthalten ist, muss wg, ws und wd mit dem Index referenziert werden.
+	//Wg steht für windgust bzw. die gemessene Böengeschwindigkeit, ws steht für windspeed bzw. die gemessene Windgeschwindigkeit
+	//und wd für wind direction bzw. die Windrichtung, aus welcher der Wind kommt.
     readwindgust = antwort.devices[0].measurement.wg;
     readwindspeed = antwort.devices[0].measurement.ws;
     readwinddirection = antwort.devices[0].measurement.wd;
     utcSeconds = antwort.devices[0].measurement.ts;
 
+	//Hier wird die aktuelle Zeit in dem Format Epoch-Time eingelesen. Epoch-Time ist die Zeit (i.d.R. in Millisekunden), welche seit 01.01.1970 bis zum jetzigen Zeitpunkt verstrichen sind.
+	//Der Grund ist, dass die Seite von Mobile Alerts nicht zuverlässig alle 7 Minuten Werte des Sensors auf der Seite schreibt. Wenn bspw. die letzte Messung auf der Seite eine Stunde zurückliegt, 
+	//das System von openHAB allerdings erst später gestartet wird, dann wäre der letzte Datensatz, welcher durch das Skript eingelesen wird der, der eine Stunde zurück liegt. Sollte die Bedingung zutreffen, dass
+	//der zuvor eingestellte Schwellenwert erreicht wird, würde man theoretisch für einen mind. eine Stunde alten Datensatz benachrichtigt werden.
+	//Im Ernstfall wäre die Benachrichtigung dann viel zu spät. Daher wird später im Code eine Differenz der aktuellen Zeit mit dem timestamp des letzten Datensatzes
+	//auf der Seite berechnet. Hierfür wird über Date.now() die aktuelle Anzahl an Millisekunden ermittelt und durch 1000 geteilt, da somit die Zeit in das selbe Format wie der timestamp von Mobile Alerts gebracht wird. 
     var now = Date.now();
-    now = (now / 1000).toFixed(0);
+	now = (now / 1000).toFixed(0);
+	//Da die REST API die Werte in m/s zurückliefert, auf der Seite von Measurement Mobile Alerts allerdings alles in km/h angegeben ist, muss man die gespeicherten Werte noch umrechnen.
+	//Die Zahl wird mit 3.6 multipliziert und direkt auf eine Nachkommastelle gerundet.
     var kmhwindspeed = (readwindspeed * 3.6).toFixed(1);
     var kmhwindgust = (readwindgust * 3.6).toFixed(1);
-    //var zeit = utcSeconds + 3600; 
     var zeit = utcSeconds;
 
+	//Die Windrichtung wird als Wert zwischen 0 und 15 zurückgegeben. In der Dokumentation der API kann die Zuordnung nachgelesen werden.
+	//Hier werden die Zahlen den jeweiligen Windrichtungen in einem Array abgespeichert.
     const winddirection = [];
     winddirection.push("Norden", "Nord-Nordost", "Nordost", "Ost-Nordost", "Osten", "Ost-Südosten", "Südosten", "Süd-Südosten", "Süden", "Süd-Südwesten",
         "Südwesten", "West-Südwesten", "Westen", "West-Nordwesten", "Nordwesten", "Nord-Nordwesten");
 
-    console.log("now:" + now);
-    console.log("zeit:" + zeit);
-    console.log("time:" + time);
-
-    console.log("kmhwindspeed:" + kmhwindspeed);
-    console.log("kmhwindgust:" + kmhwindgust);
-    console.log("getwindspeed:" + getwindspeed);
-    console.log("getwindgust:" + getwindgust);
-
+	//Hier wird in einer if-Abfrage geprüft, ob der timestamp des letzten Datensatzes der Seite Mobile Alerts zu der jetzigen Zeit weniger als 30 Minuten (1800 Sekunden) zurückliegt. 
+	//Hiermit wird quasi überprüft, ob eine Benachrichtigung vom zeitlichen Abstand überhaupt Sinn macht oder ob im Worst Case der Sturm schon das Haus verwüstet hat.
     if (now - zeit <= 1800 && time != zeit) {
+	
+	//Sollte die Bedingung, dass der timestamp weniger als 30 Minuten alt ist wahr sein, dann kommt die Überprüfung, ob die gemessene Werte des Sensors (kmhwindgust und kmhwindspeed)
+	//größer sind, als die zuvor in dem Widget eingegebenen Schwellenwerte (getwindgust und getwindspeed). 
         if (kmhwindspeed > getwindspeed || kmhwindgust > getwindgust) {
 
-            items.getItem("windsensortime").postUpdate(zeit);
+	//Sollte eine der Bedingungen wahr sein, werden zunächst in die Items windsensortime die Zeit des letzten timestamps überschrieben,
+	//in die Items measuredWindGust und measuredWindSpeed die von der REST API erhaltenen Werte des Sensors und in das Item winddirection wird der Wert bzw. 
+	//die aktuelle Windrichtung abgespeichert, welcher aus dem Array ausgelesen wird.
+	        items.getItem("windsensortime").postUpdate(zeit);
             items.getItem("measuredWindGust").postUpdate(kmhwindgust);
             items.getItem("measuredWindSpeed").postUpdate(kmhwindspeed);
             items.getItem("winddirection").postUpdate(winddirection[readwinddirection]);
-
+	
+	//Damit man bei einem Sturm nicht alle sieben Minuten zugespamt wird, wird mit einem Thread gearbeitet, welcher sobald die Bedingungen wahr sind
+	//auf true gesetzt wird.
             console.log("Sleep Schleife Ende - Status Variable sleep" + sleep);
 
             sleep = true;
@@ -67,7 +96,11 @@
         sleep = true;
     }
 
-    if (sleep = true) {
+	//Sobald der boolsche Wert von sleep auf true steht, wird zunächst die Pushbenachrichtigung geschickt und anschließend wird mit einem Thread.sleep
+	//26 Minuten gewartet. Die Pushbenachrichtigung wird zur besseren Versändlichkeit noch mit Zusatzinfos angereichert, welche zuvor von der Seite Mobile Alerts ausgelesen wurde.
+	//So wird bei einer erfolgreichen Pushbenachrichtigung immer die aktuelle Windrichtung, die gemessene Windgeschwindigkeit und Böengeschwindigkeit übergeben und über die openHAB-App gepusht.
+	
+    if (sleep) {
         //notifications.sendBroadcastNotification('Achtung starker Wind aus: ' + direction + '! Aktuelle Windgeschwindigkeit: '+windspeed+' km/h Aktuelle Böengeschwindigkeit: ' + windgust+' km/h');
         notifications.sendNotification('wi20256@lehre.dhbw-stuttgart.de', 'Achtung starker Wind aus: ' + winddirection[readwinddirection] + '! Aktuelle Windgeschwindigkeit: ' + kmhwindspeed + ' km/h Aktuelle Böengeschwindigkeit: ' + kmhwindgust + ' km/h');
         //notifications.sendNotification('wi20256@lehre.dhbw-stuttgart.de','test message');
