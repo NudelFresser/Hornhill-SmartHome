@@ -1,0 +1,78 @@
+   (function () {
+
+    var measuredgust = items.getItem("measuredWindGust").state != "NULL" ? items.getItem("measuredWindGust").state : 2;
+    var getwindgust = items.getItem("windgust").state != "NULL" ? items.getItem("windgust").state : 2;
+    var measuredspeed = items.getItem("measuredWindSpeed").state != "NULL" ? items.getItem("measuredWindSpeed").state : 2;
+    var getwindspeed = items.getItem("windspeed").state != "NULL" ? items.getItem("windspeed").state : 2;
+    var time = items.getItem("windsensortime").state != "NULL" ? items.getItem("windsensortime").state : 21;
+    var thread = Java.type('java.lang.Thread');
+    var notifications = Java.type('org.openhab.io.openhabcloud.NotificationAction');
+
+    var raw = JSON.stringify({
+        "phoneid": "285142992122",
+        "deviceids": "0B1D2300E734"
+    });
+
+    var bedingung;
+    var sleep = false;
+    var readwindgust = "";
+    var readwindspeed = "";
+    var readwinddirection = "";
+    var utcSeconds = "";
+
+    var returnvalue = actions.HTTP.sendHttpPostRequest("https://www.data199.com/api/pv1/device/lastmeasurement", "application/json", raw, 10000);
+
+    var antwort = JSON.parse(returnvalue);
+
+    readwindgust = antwort.devices[0].measurement.wg;
+    readwindspeed = antwort.devices[0].measurement.ws;
+    readwinddirection = antwort.devices[0].measurement.wd;
+    utcSeconds = antwort.devices[0].measurement.ts;
+
+    var now = Date.now();
+    now = (now / 1000).toFixed(0);
+    var kmhwindspeed = (readwindspeed * 3.6).toFixed(1);
+    var kmhwindgust = (readwindgust * 3.6).toFixed(1);
+    //var zeit = utcSeconds + 3600; 
+    var zeit = utcSeconds;
+
+    const winddirection = [];
+    winddirection.push("Norden", "Nord-Nordost", "Nordost", "Ost-Nordost", "Osten", "Ost-Südosten", "Südosten", "Süd-Südosten", "Süden", "Süd-Südwesten",
+        "Südwesten", "West-Südwesten", "Westen", "West-Nordwesten", "Nordwesten", "Nord-Nordwesten");
+
+    console.log("now:" + now);
+    console.log("zeit:" + zeit);
+    console.log("time:" + time);
+
+    console.log("kmhwindspeed:" + kmhwindspeed);
+    console.log("kmhwindgust:" + kmhwindgust);
+    console.log("getwindspeed:" + getwindspeed);
+    console.log("getwindgust:" + getwindgust);
+
+    if (now - zeit <= 1800 && time != zeit) {
+        if (kmhwindspeed > getwindspeed || kmhwindgust > getwindgust) {
+
+            items.getItem("windsensortime").postUpdate(zeit);
+            items.getItem("measuredWindGust").postUpdate(kmhwindgust);
+            items.getItem("measuredWindSpeed").postUpdate(kmhwindspeed);
+            items.getItem("winddirection").postUpdate(winddirection[readwinddirection]);
+
+            console.log("Sleep Schleife Ende - Status Variable sleep" + sleep);
+
+            sleep = true;
+
+            console.log("Status Variable sleep" + sleep);
+        }
+
+        sleep = true;
+    }
+
+    if (sleep = true) {
+        //notifications.sendBroadcastNotification('Achtung starker Wind aus: ' + direction + '! Aktuelle Windgeschwindigkeit: '+windspeed+' km/h Aktuelle Böengeschwindigkeit: ' + windgust+' km/h');
+        notifications.sendNotification('wi20256@lehre.dhbw-stuttgart.de', 'Achtung starker Wind aus: ' + winddirection[readwinddirection] + '! Aktuelle Windgeschwindigkeit: ' + kmhwindspeed + ' km/h Aktuelle Böengeschwindigkeit: ' + kmhwindgust + ' km/h');
+        //notifications.sendNotification('wi20256@lehre.dhbw-stuttgart.de','test message');
+        console.log("Sleep Schleife");
+        thread.sleep(1600000);
+        console.log("Sleep Schleife Ende")
+    }
+})();
