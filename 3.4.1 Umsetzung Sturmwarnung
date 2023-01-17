@@ -8,13 +8,13 @@
     var thread = Java.type('java.lang.Thread');
     var notifications = Java.type('org.openhab.io.openhabcloud.NotificationAction');
 
-	/*Die Daten des Windsensors werden mittels der REST API abgerufen. Die komplette Dokumentation der API ist hier zu finden:
-	https://mobile-alerts.eu/info/public_server_api_documentation.pdf
-	Die zu übergebenen Parameter sind die PhoneID des Dashboards und die DeviceID des entsprechenden Sensors. Die PhoneID ist am Ende der URL zu finden:
-	https://measurements.mobile-alerts.eu/Home/SensorsOverview?phoneid=285142992122 
-	und die DeviceID in der Übersichtsseite.
-	Diese beiden Werte werden im JSON-Format in der Variable "raw" abgespeichert.
-	*/
+		/*Die Daten des Windsensors werden mittels der REST API abgerufen. Die komplette Dokumentation der API ist hier zu finden:
+		https://mobile-alerts.eu/info/public_server_api_documentation.pdf
+		Die zu übergebenen Parameter sind die PhoneID des Dashboards und die DeviceID des entsprechenden Sensors. Die PhoneID ist am Ende der URL zu finden:
+		https://measurements.mobile-alerts.eu/Home/SensorsOverview?phoneid=285142992122 
+		und die DeviceID in der Übersichtsseite.
+		Diese beiden Werte werden im JSON-Format in der Variable "raw" abgespeichert.
+		*/
 
     var raw = JSON.stringify({
         "phoneid": "285142992122",
