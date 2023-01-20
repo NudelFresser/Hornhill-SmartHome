@@ -63,7 +63,8 @@ Diese beiden Werte werden im JSON-Format in der Variable "raw" abgespeichert.
 
 //Da die REST API die Werte in m/s zurückliefert, auf der Seite von Measurement Mobile Alerts allerdings alles in km/h angegeben ist, muss man die gespeicherten Werte noch umrechnen.
 //Die Zahl wird mit 3.6 multipliziert und direkt auf eine Nachkommastelle gerundet.
-
+    var kmhwind = readwindspeed * 3.6;
+    var kmhgutst = readwindgust * 3.6;
     var kmhwindspeed = (readwindspeed * 3.6).toFixed(1);
     var kmhwindgust = (readwindgust * 3.6).toFixed(1);
     var zeit = utcSeconds;
@@ -83,7 +84,9 @@ Diese beiden Werte werden im JSON-Format in der Variable "raw" abgespeichert.
 //Sollte die Bedingung, dass der timestamp weniger als 30 Minuten alt ist wahr sein, dann kommt die Überprüfung, ob die gemessene Werte des Sensors (kmhwindgust und kmhwindspeed)
 //größer sind, als die zuvor in dem Widget eingegebenen Schwellenwerte (getwindgust und getwindspeed). 
 
-    if (kmhwindspeed > getwindspeed || kmhwindgust > getwindgust) {
+       if( kmhwind >= getwindspeed) {
+     
+             if (kmhgust >= getwindgust) {
 
 //Sollte eine der Bedingungen wahr sein, werden zunächst in die Items windsensortime die Zeit des letzten timestamps überschrieben,
 //in die Items measuredWindGust und measuredWindSpeed die von der REST API erhaltenen Werte des Sensors und in das Item winddirection wird der Wert bzw. 
@@ -100,17 +103,17 @@ Diese beiden Werte werden im JSON-Format in der Variable "raw" abgespeichert.
       console.log("Sleep Schleife Ende - Status Variable sleep" + sleep);
       sleep = true;
       console.log("Status Variable sleep" + sleep);
-        }        
+            } 	
+	}
     }
 
 //Sobald der boolsche Wert von sleep auf true steht, wird zunächst die Pushbenachrichtigung geschickt und anschließend wird mit einem Thread.sleep
 //26 Minuten gewartet. Die Pushbenachrichtigung wird zur besseren Versändlichkeit noch mit Zusatzinfos angereichert, welche zuvor von der Seite Mobile Alerts ausgelesen wurde.
 //So wird bei einer erfolgreichen Pushbenachrichtigung immer die aktuelle Windrichtung, die gemessene Windgeschwindigkeit und Böengeschwindigkeit übergeben und über die openHAB-App gepusht.
 	
-    if (sleep) {
-        //notifications.sendBroadcastNotification('Achtung starker Wind aus ' + direction + '! Aktuelle Windgeschwindigkeit: '+windspeed+' km/h Aktuelle Böengeschwindigkeit: ' + windgust+' km/h' - denke daran, alle Rolllaeden etc. zu öffnen!);
-        notifications.sendNotification('wi20256@lehre.dhbw-stuttgart.de', 'Achtung starker Wind aus: ' + winddirection[readwinddirection] + '! Aktuelle Windgeschwindigkeit: ' + kmhwindspeed + ' km/h Aktuelle Böengeschwindigkeit: ' + kmhwindgust + ' km/h');
-        //notifications.sendNotification('wi20256@lehre.dhbw-stuttgart.de','test message');
+    if (sleep == true) {
+        notifications.sendBroadcastNotification('Achtung starker Wind aus ' + winddirection[readwinddirection] + '! Aktuelle Windgeschwindigkeit: '+kmhwindspeed+' km/h Aktuelle Böengeschwindigkeit: ' + kmhwindgust+' km/h' - denke daran, alle Rolllaeden etc. zu oeffnen!);
+        
         console.log("Sleep Schleife");
         thread.sleep(1600000);
         console.log("Sleep Schleife Ende")
