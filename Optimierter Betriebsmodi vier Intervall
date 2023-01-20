@@ -1,0 +1,19 @@
+(function() {
+    //nur wenn optimierter betriebsmodi 3
+    var OptimierterBetriebmodi = items.getItem("OptimierterBetriebmodi").state != "NULL" ? items.getItem("OptimierterBetriebmodi").state : 0;
+    if(OptimierterBetriebmodi == '3'){
+      //ist es ? min nach der Zeit? => aktiviere  skript
+      var actualTime = new Date(Date.now());
+      var OptimierterBetriebRuleToggledVorheriger = items.getItem("OptimierterBetriebRuleToggledVorheriger").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRuleToggledVorheriger").state) : new Date("Thu, 01 Jan 1970 00:00:00 GMT");
+      var OptimierterBetriebRuleToggledIntervall = items.getItem("OptimierterBetriebRuleToggledIntervall").state != "NULL" ? items.getItem("OptimierterBetriebRuleToggledIntervall").state : 5;  
+
+      //Zeitunterschied in sec
+      var Zeitunterschied = (actualTime.getTime()-OptimierterBetriebRuleToggledVorheriger.getTime())/1000;
+
+      //wenn kleiner als intervall skript ausführen
+      if(Zeitunterschied/60>OptimierterBetriebRuleToggledIntervall){
+        items.getItem("OptimierterBetriebRuleToggled").postUpdate('ON');
+        items.getItem("OptimierterBetriebRuleToggledVorheriger").postUpdate(new Date(Date.now()).getTime());
+      }
+    }
+  })();
