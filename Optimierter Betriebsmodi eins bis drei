@@ -1,0 +1,110 @@
+(function() {
+  //In diesem Skript werden die ersten 3 optimierten Betriebsmodi für den Boiler bearbeitet. 3.4.2.5
+  //Da der letzte Betriebsmodi alle 5 Minuten laufen soll ist er in einer eigenen Rule
+  //auslesen des Aktuellen Betriebsmodi und ausführen der entsprechenden Logik
+  var OptimierterBetriebmodi = items.getItem("OptimierterBetriebmodi").state != "NULL" ? items.getItem("OptimierterBetriebmodi").state : "0";
+switch (OptimierterBetriebmodi) {
+  case "0": // durch Benutzer deaktivieren oder aktivieren je nachdem was auf der Webseite eingestellt wurde a)
+    //dafür wird der Status des Items ausgelesen Ohne Status ist der Boiler aktiviert
+        var OptimierterBetriebRuleTogglea = items.getItem("OptimierterBetriebRuleTogglea").state != "NULL" ? items.getItem("OptimierterBetriebRuleTogglea").state : "ON";
+        if(OptimierterBetriebRuleTogglea == "ON") {//aktivieren wasserboiler
+          items.getItem("Shelly25_C_Betrieb").sendCommand("ON");
+        }else{//deaktivieren wasserboiler
+          items.getItem("Shelly25_C_Betrieb").sendCommand("OFF");
+        }
+  break;
+  case "1": //generelle Aktivierung im Zeitraum b)   
+    //ob es im Zeitraum aktiviert sein soll
+      var OptimierterBetriebRuleToggleb = items.getItem("OptimierterBetriebRuleToggleb").state != "NULL" ? items.getItem("OptimierterBetriebRuleToggleb").state : "ON";
+    //Zeitraum
+      var actualTime = new Date(Date.now() + 60*60000);
+      var OptimierterBetriebRulebBeginn = items.getItem("OptimierterBetriebRulebBeginn").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulebBeginn").state) : actualTime;
+      var OptimierterBetriebRulebEnde = items.getItem("OptimierterBetriebRulebEnde").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulebEnde").state) : actualTime;
+    //Wenn der jetzige Zeitpunkt im Zeitraum liegt und es aktiviert sein soll wird er angeschalten ansonsten aus
+      if (OptimierterBetriebRuleToggleb  == "ON" && OptimierterBetriebRulebBeginn.getTime() <= actualTime.getTime() && OptimierterBetriebRulebEnde.getTime() > actualTime.getTime()) {// durch Benutzer deaktivieren aktivieren a)
+      items.getItem("Shelly25_C_Betrieb").sendCommand("ON");
+      }else{//deaktivieren wasserboiler
+        items.getItem("Shelly25_C_Betrieb").sendCommand("OFF");
+      }
+  break; 
+  case "2": //nur in günstigen oder Mittleren Zeiträumen aktivieren c)
+    //ON = in günstigen und mittleren OFF = nur in günstigen
+      var OptimierterBetriebRuleTogglec = items.getItem("OptimierterBetriebRuleTogglec").state != "NULL" ? items.getItem("OptimierterBetriebRuleTogglec").state : "ON";
+    
+    //initialisierung welcher strompreis gerade ist
+      var Strompreis = 0;
+    //initialisierung der aktuellen Zeit
+      var actualTime = new Date(Date.now());
+    //abfrage wenn samstag und sonntag
+      if(actualTime.getDay() == 6 || actualTime.getDay() == 0){
+        //abfrage der eingestellten Zeiten
+        var OptimierterBetriebRulecsTimea = items.getItem("OptimierterBetriebRulecsTimea").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecsTimea").state) : new Date("Thu, 01 Jan 1970 00:00:00 GMT");
+        var OptimierterBetriebRulecsTimeb = items.getItem("OptimierterBetriebRulecsTimeb").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecsTimeb").state) : new Date("Thu, 01 Jan 1970 00:00:00 GMT");
+        var OptimierterBetriebRulecsTimec = items.getItem("OptimierterBetriebRulecsTimec").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecsTimec").state) : new Date("Thu, 01 Jan 1970 00:00:00 GMT");
+        var OptimierterBetriebRulecsTimed = items.getItem("OptimierterBetriebRulecsTimed").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecsTimed").state) : new Date("Thu, 01 Jan 1970 00:00:00 GMT");
+        var OptimierterBetriebRulecsTimee = items.getItem("OptimierterBetriebRulecsTimee").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecsTimee").state) : new Date("Thu, 01 Jan 1970 00:00:00 GMT");
+        var OptimierterBetriebRulecsTimef = items.getItem("OptimierterBetriebRulecsTimef").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecsTimef").state) : new Date("Thu, 01 Jan 1970 00:00:00 GMT");
+
+        //In welchem Zeitraum befinden wir uns gerade?
+        //wenn aktuzelle Zeit < eingestellte Zeit dann wird der entsprechende wert des dazugehörigen Strompreises eingetragen
+        //wenn nächste eingestellte Zeit < derzeitig eingestellteZeit => übersprungen | nach der letzten Kostenart wir die Regel durch die Kostenart 7(g) auffangen
+        if (actualTime.toLocaleTimeString()<OptimierterBetriebRulecsTimea.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecsKostena").state != "NULL" ? items.getItem("OptimierterBetriebRulecsKostena").state : 0;
+        }else if(actualTime.toLocaleTimeString()<OptimierterBetriebRulecsTimeb.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecsKostenb").state != "NULL" ? items.getItem("OptimierterBetriebRulecsKostenb").state : 0;
+        }else if(actualTime.toLocaleTimeString()<OptimierterBetriebRulecsTimec.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecsKostenc").state != "NULL" ? items.getItem("OptimierterBetriebRulecsKostenc").state : 0;
+        }else if(actualTime.toLocaleTimeString()<OptimierterBetriebRulecsTimed.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecsKostend").state != "NULL" ? items.getItem("OptimierterBetriebRulecsKostend").state : 0;
+        }else if (actualTime.toLocaleTimeString()<OptimierterBetriebRulecsTimee.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecsKostene").state != "NULL" ? items.getItem("OptimierterBetriebRulecsKostene").state : 0;
+        }else if(actualTime.toLocaleTimeString()<OptimierterBetriebRulecsTimef.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecsKostenf").state != "NULL" ? items.getItem("OptimierterBetriebRulecsKostenf").state : 0;
+        }else{
+          var Strompreis = items.getItem("OptimierterBetriebRulecsKosteng").state != "NULL" ? items.getItem("OptimierterBetriebRulecsKosteng").state : 0;
+        }
+         //abfrage wenn Wochentag
+      }else{
+        //abfrage der eingestellten Zeiten
+        var OptimierterBetriebRulecTimea = items.getItem("OptimierterBetriebRulecTimea").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecTimea").state) : new Date("Thu, 01 Jan 1970 07:00:00 GMT");
+        var OptimierterBetriebRulecTimeb = items.getItem("OptimierterBetriebRulecTimeb").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecTimeb").state) : new Date("Thu, 01 Jan 1970 09:00:00 GMT");
+        var OptimierterBetriebRulecTimec = items.getItem("OptimierterBetriebRulecTimec").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecTimec").state) : new Date("Thu, 01 Jan 1970 13:00:00 GMT");
+        var OptimierterBetriebRulecTimed = items.getItem("OptimierterBetriebRulecTimed").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecTimed").state) : new Date("Thu, 01 Jan 1970 17:00:00 GMT");
+        var OptimierterBetriebRulecTimee = items.getItem("OptimierterBetriebRulecTimee").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecTimee").state) : new Date("Thu, 01 Jan 1970 21:00:00 GMT");
+        var OptimierterBetriebRulecTimef = items.getItem("OptimierterBetriebRulecTimef").state != "NULL" ? new Date(items.getItem("OptimierterBetriebRulecTimef").state) : new Date("Thu, 01 Jan 1970 00:00:00 GMT");
+
+        //In welchem Zeitraum befinden wir uns gerade?
+        //wenn aktuzelle Zeit < eingestellte Zeit dann wird der entsprechende wert des dazugehörigen Strompreises eingetragen
+        //wenn nächste eingestellte Zeit < derzeitig eingestellteZeit => übersprungen | nach der letzten Kostenart wir die Regel durch die Kostenart 7(g) auffangen
+        if (actualTime.toLocaleTimeString()<OptimierterBetriebRulecTimea.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecKostena").state != "NULL" ? items.getItem("OptimierterBetriebRulecKostena").state : 0;
+        }else if(actualTime.toLocaleTimeString()<OptimierterBetriebRulecTimeb.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecKostenb").state != "NULL" ? items.getItem("OptimierterBetriebRulecKostenb").state : 1;
+        }else if(actualTime.toLocaleTimeString()<OptimierterBetriebRulecTimec.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecKostenc").state != "NULL" ? items.getItem("OptimierterBetriebRulecKostenc").state : 2;
+        }else if(actualTime.toLocaleTimeString()<OptimierterBetriebRulecTimed.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecKostend").state != "NULL" ? items.getItem("OptimierterBetriebRulecKostend").state : 1;
+        }else if (actualTime.toLocaleTimeString()<OptimierterBetriebRulecTimee.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecKostene").state != "NULL" ? items.getItem("OptimierterBetriebRulecKostene").state : 2;
+        }else if(actualTime.toLocaleTimeString()<OptimierterBetriebRulecTimef.toLocaleTimeString()) {
+          var Strompreis = items.getItem("OptimierterBetriebRulecKostenf").state != "NULL" ? items.getItem("OptimierterBetriebRulecKostenf").state : 1;
+        }else{
+          var Strompreis = items.getItem("OptimierterBetriebRulecKosteng").state != "NULL" ? items.getItem("OptimierterBetriebRulecKosteng").state : 1;
+        }
+      }
+
+        //Wenn derzeit der Strompreis günstig ist wir der Boiler aktiviert
+        if(Strompreis == 0){
+          items.getItem("Shelly25_C_Betrieb").sendCommand("ON");
+        }else if(OptimierterBetriebRuleTogglec == "ON" && Strompreis == 1){//Wenn derzeit der Strompreis mittel ist wir der Boiler aktiviert falls dieser dann angeschalten sein soll
+          items.getItem("Shelly25_C_Betrieb").sendCommand("ON");
+        }else{
+          items.getItem("Shelly25_C_Betrieb").sendCommand("OFF");
+        }
+  break;
+  case "3": //nur in günstigen ? Mittleren d) || Solarstrom
+  break;
+  default:
+      console.log('Bitte geben Sie einen passenden Modus ein'); // openhab config kontrolle oder ausgabe App
+}
+})();
