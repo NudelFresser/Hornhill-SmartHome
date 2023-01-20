@@ -1,25 +1,36 @@
 (function() {
+  // Speichert Zeit bei Scriptausführung in Variable
   const actualTime = new Date(Date.now() + 60*60000);
-
+  
+  // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst die aktuelle Zeit als Default
   const heaterBlockedUntil = items.getItem("HeaterBlockedUntil").state != "NULL" ? new Date(items.getItem("HeaterBlockedUntil").state) : actualTime;
-
-  const heaterBlockDuration = items.getItem("HeaterBlockTime").state != "NULL" ? items.getItem("HeaterBlockTime").state : 15;
-
+  
+  // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 15 Minuten als Default
+  const heaterBlockDuration = items.getItem("HeaterBlockTime").state != "NULL" ? items.getItem("HeaterBlockTime").state : 15
+  
+  // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 120 Minuten als Default
   const heaterMaxTime = items.getItem("HeaterMaxTime").state != "NULL" ? items.getItem("HeaterMaxTime").state : 120;
-
+  
+  // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 300 Watt als Default
   const balconyPowerStationQuantity = items.getItem("BalconyPowerStationQuantity").state != "NULL" ? items.getItem("BalconyPowerStationQuantity").state : 300; 
 
+  // Führt diesen Code-Block nur aus, wenn die Infrarotheizung nicht derzeit noch gesperrt ist wegen vorherigem Dauerbetrieb
   if(heaterBlockedUntil.getTime() <= actualTime.getTime()) {
-    //schon an
+  
+    // Führt diesen Code-Block nur aus, wenn die Infrarotheizung bereits eingeschaltet ist
     if(items.getItem("Shelly25_B_Betrieb").state == "ON") {
-      //Dauerbetrieb
+      
+      // Prüft ob die Infrarotheizung den manuell konfigurierbaren Schwellenwert der maximalen Laufzeit überschritten hat
+      // Falls ja, wird die Infrarotheizung ausgeschaltet und für die manuell konfigurierbare Dauer gesperrt
       if(items.getItem("Shelly25_B_Betrieb").history.changedSince(new Date(actualTime.getTime() - (60 + heaterMaxTime)*60000))) {
         items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
         heaterIsOn = false;
         items.getItem("HeaterBlockedUntil").postUpdate(actualTime.getTime() + (60 + heaterBlockDuration)*60000);
         console.log("Heizung wird wegen Dauerbetrieb vorerst abgeschalten.");
-      }//muss hier else/else if hin? => das nicht doppelt ausgeschalten wird?
-      //nicht genügend Stom
+      }
+      
+      // Prüft ob das Balkonkraftwerk die manuell konfigurierbare Mindestmenge an Strom produziert um die Infrarotheizung zu betreiben
+      // Falls nein, wird die Infrarotheizung ausgeschaltet
       if(items.getItem("Shelly25_A_Stromverbrauch").state < (balconyPowerStationQuantity.toString() + " W")) {
         items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
         heaterIsOn = false;
@@ -43,9 +54,11 @@
         }
       }
     } 
-    //noch nicht an
+    
+    // Führt diesen Code-Block nur aus, wenn die Infrarotheizung ausgeschaltet ist
     else {
-      //genügend Strom
+          
+      // Führt diesen Code-Block nur aus, wenn das Balkonkraftwerk die manuell konfigurierbare Mindestmenge an Strom produziert um die Infrarotheizung zu betreiben
       if(items.getItem("Shelly25_A_Stromverbrauch").state > (balconyPowerStationQuantity.toString() + " W")) {
         //optimiertes Heizen
         var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
@@ -62,12 +75,16 @@
               console.log("Optimiertes Heizen: Balkonkraftwerk erzeugt viel Energie, Temperatur zu gering oder Luftfeuchtigkeit zu hoch, Infrarotheizung wird eingeschalten.");
           }
         }
+        // Führt diesen Code-Block nur aus, wenn OptimiertesHeizenRuleToggle nicht aktviviert ist
+        // Schaltet Infrarotheizung ein
         else{
           items.getItem("Shelly25_B_Betrieb").sendCommand("ON");
           console.log("Balkonkraftwerk erzeugt viel Energie, Infrarotheizung wird eingeschalten.");
         }
               
       }  
+      // Prüft ob das Balkonkraftwerk die manuell konfigurierbare Mindestmenge an Strom produziert um die Infrarotheizung zu betreiben
+      // Falls nein, wird dies in einem Log festgehalten
       if(items.getItem("Shelly25_A_Stromverbrauch").state < (balconyPowerStationQuantity.toString() + " W")) {
         heaterIsOn = false;
         console.log("Balkonkraftwerk erzeugt nicht genügend Energie.");
@@ -75,7 +92,10 @@
     }
 
 
-  } else {
+  } 
+  // Führt diesen Code-Block nur aus, wenn die Infrarotheizung derzeit noch gesperrt ist wegen vorherigem Dauerbetrieb
+  // Falls ja, wird dies in einem Log festgehalten
+  else {
     console.log("Heizung ist wegen Dauerbetrieb bis " + items.getItem("HeaterBlockedUntil").state + " abgeschaltet.");
   }
 })();
