@@ -36,17 +36,34 @@
         heaterIsOn = false;
         console.log("Balkonkraftwerk erzeugt nicht genug Energie, Infrarotheizung wird eingeschalten.");
       }else{
-        //optimiertes Heizen
+      
+        //optimiertes Heizen 
+        // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst true als Default
         var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
+        
+        // Führt diesen Code-Block nur aus, wenn das Optimierte Heizen aktiviert ist
         if (OptimiertesHeizenRuleToggle) {
+        
+          // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 21 Grad Celcius als Default
           var MaxSollTempHobbyraumv = items.getItem("MaxSollTempHobbyraum").state != "NULL" ? items.getItem("MaxSollTempHobbyraum").state : 21;
+          // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 70 % als Default
           var MinSollLuftfeuchtHobbyraumv = items.getItem("MinSollLuftfeuchtHobbyraum").state != "NULL" ? items.getItem("MinSollLuftfeuchtHobbyraum").state : 70;
+          
+          //Im folgenden werden die Daten von der Mobile Allerts website abgerufen
+          //Dafür wird zuerst der body der http request definiert
           var contentHobbyraum ='{"deviceids":"032041B7B589","phoneid":"285142992122"}'
+          //anschließend wird die Http Post request gesendet
           var returnvalueHobbyraum = actions.HTTP.sendHttpPostRequest("https://www.data199.com/api/pv1/device/lastmeasurement","application/json",contentHobbyraum, 10000);
+          
+          //um die Antwort der Http request verarbeiten zu können wird die in einen Jason geparsed und in einzelne variablen eingetragen (tHobbyraumv, hHobbyraumv)
           var antwortHobbyraum = JSON.parse(returnvalueHobbyraum);
           var tHobbyraumv = antwortHobbyraum.devices[0].measurement.t1;
           var hHobbyraumv = antwortHobbyraum.devices[0].measurement.h;
+          
+          //wenn die Temperatur des Hobbyraums größer als die Maximale Solltemperatur und die Luftfeuchtigkeit des Hobbyraums kleiner als die Minimale Luftfeuchtigkeit ist 
           if (tHobbyraumv > MaxSollTempHobbyraumv && hHobbyraumv < MinSollLuftfeuchtHobbyraumv) {
+          
+          //soll die INfrarotheizung ausgeschaltet werden, die variable geändert und eine Konsolenausgabe über das Ereigniss gegeben werden
             items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
             heaterIsOn = false;
             console.log("Optimiertes Heizen: Temperatur zu hoch und Luftfeuchtigkeit zu gering, Heizung wird wegen Dauerbetrieb abgeschalten.");
@@ -60,17 +77,33 @@
           
       // Führt diesen Code-Block nur aus, wenn das Balkonkraftwerk die manuell konfigurierbare Mindestmenge an Strom produziert um die Infrarotheizung zu betreiben
       if(items.getItem("Shelly25_A_Stromverbrauch").state > (balconyPowerStationQuantity.toString() + " W")) {
+      
         //optimiertes Heizen
+        // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst true als Default
         var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
+        // Führt diesen Code-Block nur aus, wenn das Optimierte Heizen aktiviert ist
         if (OptimiertesHeizenRuleToggle) {
+        
+          // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 19 Grad Celcius als Default
           var MinSollTempHobbyraumv = items.getItem("MinSollTempHobbyraum").state != "NULL" ? items.getItem("MinSollTempHobbyraum").state : 19;
+          // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 75 % als Default
           var MaxSollLuftfeuchtHobbyraumv = items.getItem("MaxSollLuftfeuchtHobbyraum").state != "NULL" ? items.getItem("MaxSollLuftfeuchtHobbyraum").state : 75;
           var contentHobbyraum ='{"deviceids":"032041B7B589","phoneid":"285142992122"}'
+          
+          //anschließend wird die Http Post request gesendet
           var returnvalueHobbyraum = actions.HTTP.sendHttpPostRequest("https://www.data199.com/api/pv1/device/lastmeasurement","application/json",contentHobbyraum, 10000);
+          
+          //um die Antwort der Http request verarbeiten zu können wird die in einen Jason geparsed und in einzelne variablen eingetragen (tHobbyraumv, hHobbyraumv)
           var antwortHobbyraum = JSON.parse(returnvalueHobbyraum);
+          
+          //Im folgenden werden die Daten von der Mobile Allerts website abgerufen
+          //Dafür wird zuerst der body der http request definiert
           var tHobbyraumv = antwortHobbyraum.devices[0].measurement.t1;
           var hHobbyraumv = antwortHobbyraum.devices[0].measurement.h;
+          //wenn die Temperatur des Hobbyraums kleiner als die Minimale Solltemperatur oder die Luftfeuchtigkeit des Hobbyraums größer als die Minimale Luftfeuchtigkeit ist
           if (tHobbyraumv < MinSollTempHobbyraumv || hHobbyraumv > MaxSollLuftfeuchtHobbyraumv) {
+          
+          //soll die INfrarotheizung angeschaltet werden und eine Konsolenausgabe über das Ereigniss gegeben werden
               items.getItem("Shelly25_B_Betrieb").sendCommand("ON");
               console.log("Optimiertes Heizen: Balkonkraftwerk erzeugt viel Energie, Temperatur zu gering oder Luftfeuchtigkeit zu hoch, Infrarotheizung wird eingeschalten.");
           }
