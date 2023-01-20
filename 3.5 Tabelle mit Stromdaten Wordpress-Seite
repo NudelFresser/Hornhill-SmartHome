@@ -1,0 +1,113 @@
+<!-- simple HTML-Tabelle, für die übersichtliche Darstellung der Werte -->
+<table>
+	<thead>
+		<tr>
+			<th colspan="2">Vom Balkonkraftwerk erzeugter Strom</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Aktuell</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und gibt dessen State als Text aus -->
+				<?php
+					$now = wpgetapi_endpoint( 'openhab', 'shelly_a_consumption', array('debug' => false) );
+					echo $now['state'];
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>Heute</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und rechnet dessen State von Watt auf Kilowatt um, gibt ihn dann als Text aus -->
+				<?php
+					$today = wpgetapi_endpoint( 'openhab', 'consumption_today', array('debug' => false) );
+					$today_number = floatval($today['state']);
+					echo ($today_number/1000)." kWh";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>Gestern</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und rechnet dessen State von Watt auf Kilowatt um, gibt ihn dann als Text aus -->
+				<?php
+					$yesterday = wpgetapi_endpoint( 'openhab', 'consumption_yesterday', array('debug' => false) );
+					$yesterday_number = floatval($yesterday['state']);
+					echo ($yesterday_number/1000)." kWh";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>Diese Woche</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und rechnet dessen State von Watt auf Kilowatt um, gibt ihn dann als Text aus -->
+				<?php
+					$thisWeek = wpgetapi_endpoint( 'openhab', 'consumption_thisWeek', array('debug' => false) );
+					$thisWeek_number = floatval($thisWeek['state']);
+					echo ($thisWeek_number/1000)." kWh";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>Letzte Woche</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und rechnet dessen State von Watt auf Kilowatt um, gibt ihn dann als Text aus -->
+				<?php
+					$lastWeek = wpgetapi_endpoint( 'openhab', 'consumption_lastWeek', array('debug' => false) );
+					$lastWeek_number = floatval($lastWeek['state']);
+					echo ($lastWeek_number/1000)." kWh";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>Diesen Monat</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und rechnet dessen State von Watt auf Kilowatt um, gibt ihn dann als Text aus -->
+				<?php
+					$thisMonth = wpgetapi_endpoint( 'openhab', 'consumption_thisMonth', array('debug' => false) );
+					$thisMonth_number = floatval($thisMonth['state']);
+					echo ($thisMonth_number/1000)." kWh";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>Letzten Monat</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und rechnet dessen State von Watt auf Kilowatt um, gibt ihn dann als Text aus -->
+				<?php
+					$lastMonth = wpgetapi_endpoint( 'openhab', 'consumption_lastMonth', array('debug' => false) );
+					$lastMonth_number = floatval($lastMonth['state']);
+					echo ($lastMonth_number/1000)." kWh";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>Dieses Jahr</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und rechnet dessen State von Watt auf Kilowatt um, gibt ihn dann als Text aus -->
+				<?php
+					$thisYear = wpgetapi_endpoint( 'openhab', 'consumption_thisYear', array('debug' => false) );
+					$thisYear_number = floatval($thisYear['state']);
+					echo ($thisYear_number/1000)." kWh";
+				?>
+			</td>
+		</tr>
+		<tr>
+			<td>Letztes Jahr</td>
+			<td><!-- Ruft das Objekt vom konfigurierten Endpoint auf und rechnet dessen State von Watt auf Kilowatt um, gibt ihn dann als Text aus -->
+				<?php
+					$lastYear = wpgetapi_endpoint( 'openhab', 'consumption_lastYear', array('debug' => false) );
+					$lastYear_number = floatval($lastYear['state']);
+					echo ($lastYear_number/1000)." kWh";
+				?>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<!-- zusätzliche CSS-Stile, für die schönere Darstellung der Tabelle -->
+<style type="text/css">
+table {
+  width: 50%;
+  margin-left: 25%;
+  border: 5px solid;
+  border-radius: 10px;
+  padding: 10px;
+}
+tr td:last-child {
+  text-align: right;
+}
+</style>
