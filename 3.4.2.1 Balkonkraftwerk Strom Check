@@ -66,7 +66,9 @@
           //soll die INfrarotheizung ausgeschaltet werden, die variable geändert und eine Konsolenausgabe über das Ereigniss gegeben werden
             items.getItem("Shelly25_B_Betrieb").sendCommand("OFF");
             heaterIsOn = false;
-            console.log("Optimiertes Heizen: Temperatur zu hoch und Luftfeuchtigkeit zu gering, Heizung wird wegen Dauerbetrieb abgeschalten.");
+            console.log("Optimiertes Heizen: Temperatur zu hoch und Luftfeuchtigkeit zu gering, Heizung wird abgeschalten.");
+          }else{
+            console.log("Optimiertes Heizen: Temperatur und Luftfeuchtigkeit noch unter den Schwellenwerten, Heizung bleibt angeschalten.");
           }
         }
       }
@@ -107,6 +109,9 @@
               items.getItem("Shelly25_B_Betrieb").sendCommand("ON");
               console.log("Optimiertes Heizen: Balkonkraftwerk erzeugt viel Energie, Temperatur zu gering oder Luftfeuchtigkeit zu hoch, Infrarotheizung wird eingeschalten.");
           }
+          else{
+            console.log("Optimiertes Heizen: Balkonkraftwerk erzeugt viel Energie, Temperatur zu hoch oder Luftfeuchtigkeit zu gering, Infrarotheizung wird nicht eingeschaltet.");
+          }
         }
         // Führt diesen Code-Block nur aus, wenn OptimiertesHeizenRuleToggle nicht aktviviert ist
         // Schaltet Infrarotheizung ein
@@ -132,4 +137,3 @@
     console.log("Heizung ist wegen Dauerbetrieb bis " + items.getItem("HeaterBlockedUntil").state + " abgeschaltet.");
   }
 })();
-  
