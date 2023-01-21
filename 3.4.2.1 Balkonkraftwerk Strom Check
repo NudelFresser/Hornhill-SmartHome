@@ -39,10 +39,10 @@
       
         //optimiertes Heizen 
         // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst true als Default
-        var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
+        var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : "ON";
         
         // Führt diesen Code-Block nur aus, wenn das Optimierte Heizen aktiviert ist
-        if (OptimiertesHeizenRuleToggle) {
+        if (OptimiertesHeizenRuleToggle  == "ON") {
         
           // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 21 Grad Celcius als Default
           var MaxSollTempHobbyraumv = items.getItem("MaxSollTempHobbyraum").state != "NULL" ? items.getItem("MaxSollTempHobbyraum").state : 21;
@@ -80,9 +80,9 @@
       
         //optimiertes Heizen
         // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst true als Default
-        var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : true;
+        var OptimiertesHeizenRuleToggle = items.getItem("OptimiertesHeizenRuleToggle").state != "NULL" ? items.getItem("OptimiertesHeizenRuleToggle").state : "ON";
         // Führt diesen Code-Block nur aus, wenn das Optimierte Heizen aktiviert ist
-        if (OptimiertesHeizenRuleToggle) {
+        if (OptimiertesHeizenRuleToggle == "ON") {
         
           // Prüft ob im verknüpften Item bereits ein Wert eingetragen ist, nimmt sonst 19 Grad Celcius als Default
           var MinSollTempHobbyraumv = items.getItem("MinSollTempHobbyraum").state != "NULL" ? items.getItem("MinSollTempHobbyraum").state : 19;
