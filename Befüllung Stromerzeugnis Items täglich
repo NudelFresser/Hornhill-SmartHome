@@ -1,0 +1,92 @@
+(function() {
+  
+  // Speichert Item in Variable um spätere Methodenaufrufe zu verkürzen
+  let item = items.getItem("Shelly25_A_Stromverbrauch");
+  
+  // Hilfsfunktion, um ersten Tag einer Woche im Date Format zu erhalten
+  function startOfWeek(date)
+  {
+    var diff = date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1);
+  
+    return new Date(date.setDate(diff));
+ 
+  }
+  
+  // Hilfsfunktion, um ersten Tag eines Monats im Date Format zu erhalten
+  function startOfMonth(date)
+  {
+     
+   return new Date(date.getFullYear(), date.getMonth(), 1);
+ 
+  } 
+  
+  // Speichert heutiges Datum um 00:00 Uhr in Variable
+  let today = new Date();
+  today.setUTCHours(0,0,0,0);
+  
+  // Errechnet gestrige Stromerzeugnis durch Summe seit gestern 0 Uhr - Summe seit heute 0 Uhr und speichert Ergebnis im entsprechenden Item
+  let yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() -1)
+  yesterday.setUTCHours(0,0,0,0);
+  
+  let yesterdaysConsumption = item.history.sumSince(yesterday) - item.history.sumSince(today);
+  
+  items.getItem("BalconyPowerStationConsumptionYesterday").postUpdate(yesterdaysConsumption);
+
+  
+  // Ruft Stromerzeugnis seit Anfang dieser Woche ab und speichert Ergebnis im entsprechenden Item
+  let thisWeek = new Date(); 
+  thisWeek = startOfWeek(thisWeek);
+  thisWeek.setUTCHours(0,0,0,0);
+  
+  let thisWeeksConsumption = item.history.sumSince(thisWeek);
+  
+  items.getItem("BalconyPowerStationConsumptionThisWeek").postUpdate(thisWeeksConsumption);
+
+  
+  // Ruft Stromerzeugnis seit Anfang diesen Monats ab und speichert Ergebnis im entsprechenden Item
+  let thisMonth = new Date(); 
+  thisMonth = startOfMonth(thisMonth);
+
+  let thisMonthsConsumption = item.history.sumSince(thisMonth);
+  
+  items.getItem("BalconyPowerStationConsumptionThisMonth").postUpdate(thisMonthsConsumption);
+
+  
+  // Ruft Stromerzeugnis seit Anfang diesen Jahres ab und speichert Ergebnis im entsprechenden Item
+  let thisYear = new Date(new Date().getFullYear(), 0, 1);
+  
+  let thisYearsConsumption = item.history.sumSince(thisYear);
+  
+  items.getItem("BalconyPowerStationConsumptionThisYear").postUpdate(thisYearsConsumption);
+
+
+  // Errechnet Stromerzeugnis von letzter Woche durch Summe seit Anfang letzter Woche 0 Uhr - Summe seit Anfang dieser Woche 0 Uhr und speichert Ergebnis im entsprechenden Item
+  let lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); 
+  lastWeek = startOfWeek(lastWeek);
+  lastWeek.setUTCHours(0,0,0,0);
+  
+  let lastWeeksConsumption = item.history.sumSince(lastWeek) - item.history.sumSince(thisWeek);
+  
+  items.getItem("BalconyPowerStationConsumptionLastWeek").postUpdate(lastWeeksConsumption);
+
+  
+  // Errechnet Stromerzeugnis von letztem Monat durch Summe seit Anfang letzter Monat 0 Uhr - Summe seit Anfang dieser Monat 0 Uhr und speichert Ergebnis im entsprechenden Item
+  let lastMonth = new Date(); 
+  lastMonth.setMonth(lastMonth.getMonth() -1);
+  lastMonth = startOfMonth(lastMonth);
+  
+  let lastMonthsConsumption = item.history.sumSince(lastMonth) - item.history.sumSince(thisMonth);
+  
+  items.getItem("BalconyPowerStationConsumptionLastMonth").postUpdate(lastMonthsConsumption);
+
+  
+  // Errechnet Stromerzeugnis von letztem Jahr durch Summe seit Anfang letztes Jahr 0 Uhr - Summe seit Anfang dieses Jahr 0 Uhr und speichert Ergebnis im entsprechenden Item
+  let lastYear = new Date(new Date().getFullYear() -1, 0, 1);
+  
+  let lastYearsConsumption = item.history.sumSince(lastYear) - item.history.sumSince(thisYear);
+
+  items.getItem("BalconyPowerStationConsumptionLastYear").postUpdate(lastYearsConsumption);
+
+
+})();
