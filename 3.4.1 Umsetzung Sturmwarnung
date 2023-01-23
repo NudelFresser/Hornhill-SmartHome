@@ -109,7 +109,7 @@ Diese beiden Werte werden im JSON-Format in der Variable "raw" abgespeichert.
 
 //Sobald der boolsche Wert von sleep auf true steht, wird zunächst die Pushbenachrichtigung geschickt und anschließend wird mit einem Thread.sleep
 //26 Minuten gewartet. Die Pushbenachrichtigung wird zur besseren Versändlichkeit noch mit Zusatzinfos angereichert, welche zuvor von der Seite Mobile Alerts ausgelesen wurde.
-//So wird bei einer erfolgreichen Pushbenachrichtigung immer die aktuelle Windrichtung, die gemessene Windgeschwindigkeit und Böengeschwindigkeit übergeben und über die openHAB-App gepusht.
+//So wird bei einer erfolgreichen Pushbenachrichtigung immer die aktuelle Windrichtung, die gemessene Windgeschwindigkeit und Böengeschwindigkeit übergeben und über die openHAB-App an alle Mitglieder der Gruppe gepusht.
 	
     if (sleep == true) {
         notifications.sendBroadcastNotification('Achtung starker Wind aus ' + winddirection[readwinddirection] + '! Aktuelle Windgeschwindigkeit: '+kmhwindspeed+' km/h Aktuelle Böengeschwindigkeit: ' + kmhwindgust+' km/h' - denke daran, alle Rolllaeden etc. zu oeffnen!);
