@@ -78,6 +78,8 @@ Diese beiden Werte werden im JSON-Format in der Variable "raw" abgespeichert.
 
 //Hier wird in einer if-Abfrage geprüft, ob der timestamp des letzten Datensatzes der Seite Mobile Alerts zu der jetzigen Zeit weniger als 30 Minuten (1800 Sekunden) zurückliegt. 
 //Hiermit wird quasi überprüft, ob eine Benachrichtigung vom zeitlichen Abstand überhaupt Sinn macht oder ob im Worst Case der Sturm schon das Haus verwüstet hat.
+//Wenn der letzte Datensatz auf der Seite länger als 30 Minuten zurückliegt und nicht alle sieben Minuten ein neuer Datensatz erscheint, muss diese if-Abfrage mit "//" auskommentiert werden,
+//damit die Funktionalität des Codes getestet werden kann.
 
     if (now - zeit <= 1800 && time != zeit) {
 	
